@@ -1,0 +1,22 @@
+{
+“name”: “Toli’s Quest”,
+“short_name”: “Toli”,
+“description”: “Ayudá a Toli el velociraptor a encontrar el tesoro respondiendo preguntas.”,
+“start_url”: “/”,
+“display”: “standalone”,
+“background_color”: “#1a0a2e”,
+“theme_color”: “#1a0a2e”,
+“orientation”: “portrait”,
+“icons”: [
+{
+“src”: “icon-192.png”,
+“sizes”: “192x192”,
+“type”: “image/png”
+},
+{
+“src”: “icon-512.png”,
+“sizes”: “512x512”,
+“type”: “image/png”
+}
+]
+}
