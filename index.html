@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -109,33 +108,30 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;backgrou
 .t-bounce{animation:bounce .6s ease 3;}
 .t-shake{animation:shake .5s ease 2;}
 </style>
-
 </head>
 <body>
 
 <!-- LOAD -->
-
 <div id="s-load" class="screen active">
   <div class="dino-hero">🦖</div>
   <h1>Toli's Quest</h1>
   <p class="sub">Ayudá a Toli a encontrar el tesoro respondiendo preguntas sobre tu contenido.</p>
   <div class="input-wrap">
     <textarea id="txt-input" placeholder="Pegá acá tu texto, apuntes o tema. También podés subir archivos con el botón +"></textarea>
-    <button id="add-btn" onclick="toggleMenu(event)">+</button>
+    <button id="add-btn">+</button>
     <div id="file-menu">
-      <div class="fopt" onclick="triggerFile('txt')"><span>📄</span>Texto (.txt, .md…)</div>
-      <div class="fopt" onclick="triggerFile('pdf')"><span>📕</span>PDF</div>
-      <div class="fopt" onclick="triggerFile('any')"><span>📁</span>Cualquier archivo</div>
+      <div class="fopt" data-type="txt"><span>📄</span>Texto (.txt, .md…)</div>
+      <div class="fopt" data-type="pdf"><span>📕</span>PDF</div>
+      <div class="fopt" data-type="any"><span>📁</span>Cualquier archivo</div>
     </div>
     <input type="file" id="real-input" multiple>
   </div>
   <div id="chips"></div>
   <div id="load-msg"></div>
-  <button id="btn-play" onclick="startGame()">🦕 ¡Comenzar la aventura!</button>
+  <button id="btn-play">🦕 ¡Comenzar la aventura!</button>
 </div>
 
 <!-- MAP -->
-
 <div id="s-map" class="screen">
   <div class="map-title">🗺️ El camino al tesoro</div>
   <div class="map-sub" id="map-story"></div>
@@ -144,7 +140,6 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;backgrou
 </div>
 
 <!-- GAME -->
-
 <div id="s-game" class="screen">
   <div class="hud">
     <div class="hud-lives" id="lives-d"></div>
@@ -182,23 +177,21 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;backgrou
     <div class="qtext" id="qtext">Cargando...</div>
     <div class="opts" id="opts"></div>
     <div class="fb" id="fb"></div>
-    <button id="btn-continue" onclick="onContinue()">Continuar →</button>
+    <button id="btn-continue">Continuar →</button>
   </div>
 </div>
 
 <!-- EXPLANATION -->
-
 <div id="s-explain" class="screen">
   <div class="exp-card">
     <div class="exp-title" id="exp-title">❌ Respuesta incorrecta</div>
     <div class="exp-correct" id="exp-correct"></div>
     <div class="exp-body" id="exp-body">Cargando explicación...</div>
-    <button id="btn-exp-cont" onclick="afterExplain()">Entendido, seguir →</button>
+    <button id="btn-exp-cont">Entendido, seguir →</button>
   </div>
 </div>
 
 <!-- GAME OVER -->
-
 <div id="s-over" class="screen">
   <div class="big-e">💀</div>
   <div class="end-t" style="color:#ff7070">¡Toli cayó!</div>
@@ -209,7 +202,6 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;backgrou
 </div>
 
 <!-- WIN -->
-
 <div id="s-win" class="screen">
   <div class="big-e">🏆</div>
   <div class="end-t" style="color:#ffd700">¡Toli encontró el tesoro!</div>
@@ -220,7 +212,7 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;backgrou
 
 <script>
 // ── CONFIG ──
-const GEMINI_KEY = 'AIzaSyAXnzGtPn6Y7kgZmR1nsqfi6bc_pETPD-4'; // <- pegá tu key de Google AI Studio acá
+const WORKER_URL ='https://toli-gemini-proxy.nicolasagustincaceres.workers.dev/ '; // ej: https://toli-gemini-proxy.TU-USUARIO.workers.dev
 
 // ── CONSTANTS ──
 const LIVES = 3, TOTAL_LVL = 5, Q_PER_LVL = 3;
@@ -244,20 +236,50 @@ const $= id => document.getElementById(id);
 function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); }
 function setMsg(m){ $('load-msg').textContent = m; }
 
-// ── FILE HANDLING ──
-function toggleMenu(e){
+// ── EVENT LISTENERS (touch + click para iOS) ──
+function addTap(el, fn){
+  if(!el) return;
+  let moved = false;
+  el.addEventListener('touchstart', ()=>{ moved=false; }, {passive:true});
+  el.addEventListener('touchmove', ()=>{ moved=true; }, {passive:true});
+  el.addEventListener('touchend', e=>{ if(!moved){ e.preventDefault(); fn(e); } });
+  el.addEventListener('click', fn);
+}
+
+// + button
+addTap($('add-btn'), e=>{
   e.stopPropagation();
   menuOpen = !menuOpen;
   $('file-menu').classList.toggle('open', menuOpen);
-}
-document.addEventListener('click', ()=>{ menuOpen=false; $('file-menu').classList.remove('open'); });
+});
 
-function triggerFile(t){
-  const inp = $('real-input');
-  inp.accept = t==='txt' ? '.txt,.md,.csv,.json' : t==='pdf' ? '.pdf' : '*/*';
-  menuOpen=false; $('file-menu').classList.remove('open');
-  inp.click();
-}
+// file menu options
+document.querySelectorAll('.fopt').forEach(el=>{
+  addTap(el, ()=>{
+    const t = el.dataset.type;
+    const inp = $('real-input');
+    inp.accept = t==='txt' ? '.txt,.md,.csv,.json' : t==='pdf' ? '.pdf' : '*/*';
+    menuOpen=false; $('file-menu').classList.remove('open');
+    inp.click();
+  });
+});
+
+document.addEventListener('touchstart', e=>{
+  if(!$('file-menu').contains(e.target) && e.target !== $('add-btn')){
+    menuOpen=false; $('file-menu').classList.remove('open');
+  }
+}, {passive:true});
+
+document.addEventListener('click', e=>{
+  if(!$('file-menu').contains(e.target) && e.target !== $('add-btn')){
+    menuOpen=false; $('file-menu').classList.remove('open');
+  }
+});
+
+// main buttons
+addTap($('btn-play'), startGame);
+addTap($('btn-continue'), onContinue);
+addTap($('btn-exp-cont'), afterExplain);
 
 $('real-input').addEventListener('change', async function(){
   const files = Array.from(this.files);
@@ -310,13 +332,12 @@ function buildMsgContent(extraText){
 }
 
 async function apiCall(parts, maxTokens=1200){
-  // Armar texto plano combinando todas las partes
   let prompt = '';
   for(const p of parts){
     if(p.type==='text') prompt += p.text + '\n\n';
-    else if(p.type==='document') prompt += '[Archivo PDF adjunto - analizá su contenido]\n\n';
+    else if(p.type==='document') prompt += '[Archivo PDF adjunto]\n\n';
   }
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+  const r = await fetch(WORKER_URL, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
@@ -592,6 +613,5 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-
 </body>
 </html>
