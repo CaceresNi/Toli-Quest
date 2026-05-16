@@ -260,14 +260,17 @@ function triggerFile(t){
 }
 
 $('real-input').addEventListener('change', async function(){
-  for(const f of this.files){
+  const files = Array.from(this.files);
+  this.value='';
+  for(const f of files){
     try{
       const parsed = await readFile(f);
       fileContents.push(parsed);
       addChip(parsed.name, fileContents.length-1);
+      setMsg('✅ Archivo cargado: '+f.name);
+      setTimeout(()=>setMsg(''),2000);
     } catch(e){ setMsg('⚠️ No se pudo leer: '+f.name); }
   }
-  this.value='';
 });
 
 function readFile(f){
