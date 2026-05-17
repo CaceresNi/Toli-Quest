@@ -210,7 +210,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
           <div class="fopt" data-type="pdf"><span>📕</span>PDF</div>
           <div class="fopt" data-type="any"><span>📁</span>Cualquier archivo</div>
         </div>
-        <input type="file" id="real-input" multiple>
+        <input type="file" id="real-input" multiple accept=".pdf,.txt,.md,.csv,.json,application/pdf,text/plain">
       </div>
       <div id="chips"></div>
     </div>
@@ -375,11 +375,9 @@ addTap($('add-btn'),e=>{
 });
 document.querySelectorAll('.fopt').forEach(el=>{
   addTap(el,()=>{
-    const t=el.dataset.type;
-    const inp=$('real-input');
-    inp.accept=t==='txt'?'.txt,.md,.csv,.json':t==='pdf'?'.pdf':'*/*';
     menuOpen=false;$('file-menu').classList.remove('open');
-    inp.click();
+    // En iOS no cambiar el accept dinámicamente — usar el del input directamente
+    $('real-input').click();
   });
 });
 document.addEventListener('touchstart',e=>{
