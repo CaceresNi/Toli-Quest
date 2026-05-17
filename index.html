@@ -8,6 +8,8 @@
 <title>Toli's Quest</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#1a0a2e;color:#fff;touch-action:manipulation;}
@@ -299,13 +301,26 @@ function readFile(f){
   return new Promise((res,rej)=>{
     if(f.name.endsWith('.pdf') || f.type==='application/pdf'){
       const r=new FileReader();
-      r.onload=()=>res({name:f.name,type:'pdf',base64:r.result.split(',')[1]});
-      r.onerror=()=>rej();
-      r.readAsDataURL(f);
+      r.onload=async()=>{
+        try{
+          const arr = new Uint8Array(r.result);
+          const pdf = await pdfjsLib.getDocument({data: arr}).promise;
+          let text = '';
+          for(let i=1;i<=pdf.numPages;i++){
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            text += content.items.map(item=>item.str).join(' ') + '\n';
+          }
+          if(text.trim().length < 50) throw new Error('PDF sin texto extraíble');
+          res({name:f.name, type:'text', text});
+        } catch(e){ rej(new Error('No se pudo extraer texto del PDF: '+e.message)); }
+      };
+      r.onerror=()=>rej(new Error('Error leyendo archivo'));
+      r.readAsArrayBuffer(f);
     } else {
       const r=new FileReader();
       r.onload=()=>res({name:f.name,type:'text',text:r.result});
-      r.onerror=()=>rej();
+      r.onerror=()=>rej(new Error('No se pudo leer: '+f.name));
       r.readAsText(f);
     }
   });
