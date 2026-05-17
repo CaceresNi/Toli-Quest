@@ -363,31 +363,67 @@ async function apiCall(parts, maxTokens=1200){
 }
 
 async function generateQuestions(lvl){
-  const diff = lvl<=2?'fácil':lvl===3?'media':'difícil';
-  const avoid = askedQs.length ? `\nNO uses estas preguntas ya hechas:\n${askedQs.map((q,i)=>`${i+1}. ${q}`).join('\n')}\n` : '';
-  const instruction = `Sos un generador de preguntas educativas. Con el contenido dado, generá exactamente ${Q_PER_LVL} preguntas de opción múltiple de dificultad ${diff}, variadas entre sí, que cubran distintos temas del contenido.${avoid}
-Respondé SOLO con JSON válido sin texto extra ni backticks:
-[{"q":"pregunta","topic":"tema breve (2-4 palabras)","opts":["A","B","C","D"],"ans":0}]
-"ans" es el índice (0-3) de la respuesta correcta. Incluí un campo "topic" con el tema de cada pregunta.`;
-  const parts = buildMsgContent(instruction);
-  const txt = await apiCall(parts);
+  const diff = lvl===1?'media':lvl<=3?'difícil':'muy difícil, con detalles específicos y casos complejos';
+  const avoid = askedQs.length ? `\nNO repitas estas preguntas ya usadas:\n${askedQs.map((q,i)=>`${i+1}. ${q}`).join('\n')}\n` : '';
+
+  // Armar el texto del contenido
+  let contenido = $('txt-input').value.trim();
+  for(const f of fileContents.filter(Boolean)){
+    if(f.text) contenido += `\n\n[${f.name}]:\n${f.text.slice(0,4000)}`;
+  }
+
+  const prompt = `Sos un generador de preguntas educativas. A continuación te doy un texto. Debés generar preguntas ÚNICAMENTE basándote en ese texto, sin agregar información externa.
+
+TEXTO:
+---
+${contenido.slice(0, 6000)}
+---
+
+Generá exactamente 3 preguntas de opción múltiple de dificultad ${diff} basadas ESTRICTAMENTE en el texto anterior. No uses conocimiento externo. Si el texto trata de legislación argentina, las preguntas deben ser sobre legislación argentina.${avoid}
+
+Respondé SOLO con JSON válido, sin texto extra ni backticks:
+[{"q":"pregunta","topic":"tema breve","opts":["A","B","C","D"],"ans":0}]
+"ans" es el índice (0-3) de la respuesta correcta.`;
+
+  const r = await fetch(WORKER_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ prompt, maxTokens:1200 })
+  });
+  const d = await r.json();
+  if(d.error) throw new Error(d.error.message);
+  const txt = d.choices?.[0]?.message?.content || '';
   const m = txt.match(/\[[\s\S]*\]/);
   if(!m) throw new Error('Sin JSON: '+txt.slice(0,80));
   return JSON.parse(m[0]);
 }
 
 async function generateExplanation(question, wrongOpt, correctOpt){
-  const instruction = `Un estudiante respondió una pregunta incorrectamente.
+  let contenido = $('txt-input').value.trim();
+  for(const f of fileContents.filter(Boolean)){
+    if(f.text) contenido += `\n\n[${f.name}]:\n${f.text.slice(0,3000)}`;
+  }
+  const prompt = `Sos un tutor educativo. Un estudiante respondió mal una pregunta sobre el siguiente texto:
+
+TEXTO:
+---
+${contenido.slice(0,4000)}
+---
+
 Pregunta: "${question}"
 Respuesta del estudiante: "${wrongOpt}"
 Respuesta correcta: "${correctOpt}"
 
-Escribí una explicación clara y educativa (máximo 4 oraciones) que:
-1. Explique POR QUÉ la respuesta del estudiante está mal.
-2. Fundamente TEÓRICAMENTE por qué la respuesta correcta es correcta.
-Solo respondé con la explicación, sin títulos ni formato extra.`;
-  const parts = buildMsgContent(instruction);
-  return await apiCall(parts, 600);
+Escribí una explicación clara (máximo 4 oraciones) basada en el texto, que explique por qué la respuesta del estudiante está mal y fundamente teóricamente la respuesta correcta. Solo la explicación, sin títulos.`;
+
+  const r = await fetch(WORKER_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ prompt, maxTokens:600 })
+  });
+  const d = await r.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.choices?.[0]?.message?.content || '';
 }
 
 // ── MAP ──
