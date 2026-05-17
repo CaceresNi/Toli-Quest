@@ -48,17 +48,18 @@ body.clicking{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/200
 
 /* ── LOAD ── */
 #s-load{background:linear-gradient(160deg,#1a0a2e,#0d3b2e);}
-#s-load .content{justify-content:center;min-height:100%;}
-.load-dino{font-size:5rem;filter:drop-shadow(0 0 20px #00ff4433);margin-bottom:8px;animation:float 3s ease-in-out infinite;}
+#s-load .content{justify-content:center;min-height:100%;max-width:600px;margin:0 auto;width:100%;}
+.load-header{display:flex;flex-direction:column;align-items:center;margin-bottom:14px;}
+.load-dino{font-size:5rem;filter:drop-shadow(0 0 20px #00ff4433);animation:float 3s ease-in-out infinite;}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 .input-wrap{position:relative;width:100%;}
-#txt-input{width:100%;height:130px;padding:12px 46px 12px 12px;background:rgba(0,0,0,.4);border:1.5px solid #2a4a10;border-radius:10px;color:#c8e8a0;font-size:.9rem;resize:none;font-family:'Nunito',sans-serif;}
+#txt-input{width:100%;height:180px;padding:14px 50px 14px 14px;background:rgba(0,0,0,.4);border:1.5px solid #2a4a10;border-radius:10px;color:#c8e8a0;font-size:.95rem;resize:none;font-family:'Nunito',sans-serif;}
 #txt-input::placeholder{color:#4a6a2a;}
 #txt-input:focus{outline:none;border-color:#5a9a20;box-shadow:0 0 12px rgba(90,154,32,.3);}
-#add-btn-wrap{position:absolute;right:8px;bottom:8px;width:32px;height:32px;}
-#add-btn{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2a7a10,#1a5a08);border:1px solid #4a9a20;color:#c8e8a0;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0005;position:relative;z-index:2;}
+#add-btn-wrap{position:absolute;right:8px;bottom:8px;width:36px;height:36px;}
+#add-btn{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2a7a10,#1a5a08);border:1px solid #4a9a20;color:#c8e8a0;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0005;position:relative;z-index:2;}
 #real-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:3;}
-#file-menu{display:none;position:absolute;right:8px;bottom:46px;background:linear-gradient(135deg,#0a1f05,#0d2a08);border:1.5px solid #2a5a10;border-radius:12px;overflow:hidden;z-index:10;min-width:190px;box-shadow:0 4px 20px #00000088;}
+#file-menu{display:none;position:absolute;right:8px;bottom:50px;background:linear-gradient(135deg,#0a1f05,#0d2a08);border:1.5px solid #2a5a10;border-radius:12px;overflow:hidden;z-index:10;min-width:190px;box-shadow:0 4px 20px #00000088;}
 #file-menu.open{display:block;}
 .fopt{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;font-size:.88rem;color:#b0d880;}
 .fopt:hover{background:rgba(60,120,20,.3);}
@@ -67,6 +68,31 @@ body.clicking{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/200
 .chip-x{cursor:pointer;color:#6a8a40;font-size:.95rem;}
 .chip-x:hover{color:#ff7070;}
 #load-msg{margin-top:10px;color:#9acd60;font-size:.85rem;min-height:18px;text-align:center;}
+
+/* ── SETTINGS BUTTON ── */
+#settings-btn{position:fixed;top:16px;left:16px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.5);border:1.5px solid #2a5a10;color:#9acd60;font-size:1.2rem;cursor:pointer;z-index:20;display:flex;align-items:center;justify-content:center;transition:.2s;}
+#settings-btn:hover{background:rgba(42,90,16,.4);transform:rotate(30deg);}
+
+/* ── SETTINGS PANEL ── */
+.settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;align-items:center;justify-content:center;}
+.settings-overlay.open{display:flex;}
+.settings-panel{background:linear-gradient(135deg,#0a1a05,#0d2a10);border:2px solid #3a6a15;border-radius:20px;padding:28px 24px;width:90%;max-width:380px;box-shadow:0 16px 48px #00000099;}
+.settings-title{font-family:'Cinzel',serif;font-size:1.1rem;color:#9acd60;text-align:center;margin-bottom:20px;letter-spacing:1px;}
+.setting-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;font-size:.9rem;color:#c0d8a0;}
+.setting-label{display:flex;align-items:center;gap:8px;}
+
+/* Toggle switch */
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:#1a3a10;border-radius:24px;cursor:pointer;transition:.3s;}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#4a6a30;border-radius:50%;transition:.3s;}
+.toggle input:checked+.toggle-slider{background:#2a7a10;}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px);background:#7aee30;}
+
+/* Volume slider */
+.vol-slider{-webkit-appearance:none;appearance:none;width:120px;height:6px;border-radius:3px;background:#1a3a10;outline:none;cursor:pointer;}
+.vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#5aaa20;cursor:pointer;}
+.settings-close{display:block;margin:8px auto 0;padding:10px 28px;background:linear-gradient(135deg,#2a7a10,#1a5a08);border:1.5px solid #5aaa20;border-radius:24px;color:#c8e8a0;font-family:'Cinzel',serif;font-size:.85rem;cursor:pointer;}
 
 /* ── MAP ── */
 #s-map .content{padding-top:24px;}
@@ -223,14 +249,42 @@ body.clicking{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/200
 <div class="streak-badge" id="streak-badge"></div>
 <div class="mult-flash" id="mult-flash"></div>
 
+<!-- SETTINGS BTN -->
+<button id="settings-btn" onclick="toggleSettings()">⚙️</button>
+
+<!-- SETTINGS PANEL -->
+<div class="settings-overlay" id="settings-overlay">
+  <div class="settings-panel">
+    <div class="settings-title">⚙️ Configuración</div>
+
+    <div class="setting-row">
+      <span class="setting-label">🌙 Modo oscuro</span>
+      <label class="toggle"><input type="checkbox" id="s-dark" checked onchange="applyTheme()"><span class="toggle-slider"></span></label>
+    </div>
+
+    <div class="setting-row">
+      <span class="setting-label">⏱ Temporizador (30s)</span>
+      <label class="toggle"><input type="checkbox" id="s-timer"><span class="toggle-slider"></span></label>
+    </div>
+
+    <div class="setting-row">
+      <span class="setting-label">🔊 Volumen</span>
+      <input type="range" class="vol-slider" id="s-vol" min="0" max="100" value="70" oninput="setVolume(this.value)">
+    </div>
+
+    <button class="settings-close" onclick="toggleSettings()">Cerrar</button>
+  </div>
+</div>
+
 <!-- LOAD -->
 <div id="s-load" class="screen active">
   <div class="content">
-    <div class="load-dino">🦖</div>
-    <div class="title-epic">TOLI'S QUEST</div>
-    <div class="title-sub">⚔ La búsqueda del tesoro ⚔</div>
-    <div style="height:16px"></div>
-    <div class="stone-card">
+    <div class="load-header">
+      <div class="load-dino">🦖</div>
+      <div class="title-epic">TOLI'S QUEST</div>
+      <div class="title-sub">⚔ La búsqueda del tesoro ⚔</div>
+    </div>
+    <div class="stone-card" style="max-width:600px;">
       <div class="rune-label">Cargá tu conocimiento</div>
       <div class="input-wrap">
         <textarea id="txt-input" placeholder="Pegá acá tu texto, apuntes o tema. También podés subir archivos con el botón +"></textarea>
@@ -245,11 +299,6 @@ body.clicking{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/200
         </div>
       </div>
       <div id="chips"></div>
-      <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap;">
-        <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:#9acd60;cursor:pointer;">
-          <input type="checkbox" id="timer-toggle" style="accent-color:#5aaa20"> ⏱ Temporizador (30s)
-        </label>
-      </div>
     </div>
     <div id="load-msg"></div>
     <button id="btn-play" class="epic-btn">🦕 ¡Comenzar la aventura!</button>
@@ -425,6 +474,45 @@ function addTap(el,fn){
   el.addEventListener('touchend',e=>{if(!moved){e.preventDefault();fn(e);}});
   el.addEventListener('click',fn);
 }
+
+// ── SETTINGS ──
+let volume=70;
+function toggleSettings(){$('settings-overlay').classList.toggle('open');}
+function applyTheme(){
+  const dark=$('s-dark').checked;
+  document.body.style.filter=dark?'':'invert(1) hue-rotate(180deg)';
+}
+function setVolume(v){
+  volume=parseInt(v);
+  if(audioCtx) gainNode.gain.value=volume/100;
+}
+
+// ── AUDIO (Web Audio API) ──
+let audioCtx=null,gainNode=null;
+function initAudio(){
+  if(audioCtx)return;
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  gainNode=audioCtx.createGain();
+  gainNode.gain.value=volume/100;
+  gainNode.connect(audioCtx.destination);
+}
+function playTone(freq,duration,type='sine'){
+  if(volume===0)return;
+  try{
+    initAudio();
+    const o=audioCtx.createOscillator();
+    const g=audioCtx.createGain();
+    o.connect(g);g.connect(gainNode);
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(.3,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);
+    o.start();o.stop(audioCtx.currentTime+duration);
+  }catch(e){}
+}
+function sfxCorrect(){playTone(523,.08);setTimeout(()=>playTone(659,.08),80);setTimeout(()=>playTone(784,.15),160);}
+function sfxWrong(){playTone(200,.1,'sawtooth');setTimeout(()=>playTone(150,.2,'sawtooth'),100);}
+function sfxLevelUp(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,.12),i*100));}
+function sfxStreak(){playTone(880,.06);setTimeout(()=>playTone(1047,.06),60);setTimeout(()=>playTone(1319,.15),120);}
 
 // ── CURSOR ──
 document.addEventListener('mousedown',()=>document.body.classList.add('clicking'));
@@ -611,7 +699,7 @@ async function startGame(){
   const hasFiles=fileContents.filter(Boolean).length>0;
   if(!manual&&!hasFiles){setMsg('⚠️ Ingresá texto o subí un archivo.');return;}
   const btn=$('btn-play');btn.disabled=true;
-  timerActive=$('timer-toggle').checked;
+  timerActive=$('s-timer').checked;
   try{
     lives=LIVES;level=1;score=0;xp=0;qIdx=0;answered=false;streak=0;
     wcElim=2;wcHint=1;askedQs=[];sessionStats={};completedLevels=new Set();
@@ -734,8 +822,8 @@ function answer(idx,btn,optText){
     $('pts-d').textContent=score+' pts';
     updateXP(0);
     showFoodPop();animateToli('roar');
-    spawnParticles(btn);
-    if(streak>=3)showStreakBadge(streak,mult);
+    spawnParticles(btn);sfxCorrect();
+    if(streak>=3){showStreakBadge(streak,mult);sfxStreak();}
     $('fb').textContent=mult>1?`🔥 ¡Racha x${mult}! +${gained} pts`:'¡Correcto! 🥩 +'+gained+' pts';
     $('fb').className='fb ok';
     lastWasWrong=false;pendingExplain=null;
@@ -746,7 +834,7 @@ function answer(idx,btn,optText){
     lives--;streak=0;renderLives();
     if(levelStars[level])levelStars[level].wrong++;
     $('fb').textContent='❌ Incorrecto. Mirá la explicación antes de continuar.';$('fb').className='fb err';
-    animateToli('shake');setToliSad();
+    animateToli('shake');setToliSad();sfxWrong();
     lastWasWrong=true;lastCorrectText=curQ.opts[curQ.ans];
     pendingExplain={question:curQ.q,wrongOpt:optText,correctOpt:curQ.opts[curQ.ans]};
     wrongAnswers.push({q:curQ.q,wrong:optText,correct:curQ.opts[curQ.ans],exp:null});
@@ -812,7 +900,7 @@ function levelComplete(){
   // calcular estrellas
   const w=levelStars[level]?.wrong||0;
   levelStars[level].stars=w===0?3:w===1?2:1;
-  completedLevels.add(level);
+  completedLevels.add(level);sfxLevelUp();
   if(level>=TOTAL_LVL){showWin();return;}
   level++;loadLevel();// show map instead? keep direct flow
 }
