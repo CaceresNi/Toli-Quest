@@ -350,6 +350,7 @@ const LEVELS=[
 // ── STATE ──
 let lives,level,score,qIdx,questions,curQ,answered,lastWasWrong,lastCorrectText,pendingExplain;
 let askedQs=[],fileContents=[],menuOpen=false,sessionStats={},completedLevels=new Set();
+let allQuestions=[]; // banco total de preguntas generadas al inicio
 
 // ── UTILS ──
 const $=id=>document.getElementById(id);
@@ -454,38 +455,72 @@ async function groqCall(prompt,maxTokens=1200){
 function buildContent(){
   let c=$('txt-input').value.trim();
   for(const f of fileContents.filter(Boolean)){
-    if(f.text)c+=`\n\n[${f.name}]:\n${f.text.slice(0,4000)}`;
+    if(f.text)c+=`\n\n=== ARCHIVO: ${f.name} ===\n${f.text}`;
   }
   return c;
 }
 
-async function generateQuestions(lvl){
-  const diff=lvl===1?'media':lvl<=3?'difícil':'muy difícil, con detalles específicos y casos complejos';
-  const avoid=askedQs.length?`\nNO repitas estas preguntas ya usadas:\n${askedQs.map((q,i)=>`${i+1}. ${q}`).join('\n')}\n`:'';
+// Divide el contenido en chunks de ~3000 chars respetando párrafos
+function chunkContent(content, chunkSize=3000){
+  const chunks=[];
+  const paragraphs=content.split(/\n{2,}/);
+  let current='';
+  for(const p of paragraphs){
+    if((current+p).length>chunkSize && current.length>0){
+      chunks.push(current.trim());
+      current=p+'\n\n';
+    } else {
+      current+=p+'\n\n';
+    }
+  }
+  if(current.trim()) chunks.push(current.trim());
+  return chunks;
+}
+
+async function generateAllQuestions(){
   const contenido=buildContent();
-  const prompt=`Sos un generador de preguntas educativas. A continuación te doy un texto. Debés generar preguntas ÚNICAMENTE basándote en ese texto, sin agregar información externa.
+  const chunks=chunkContent(contenido);
+  const totalNeeded=TOTAL_LVL*Q_PER_LVL; // 15 preguntas en total
+  const perChunk=Math.ceil(totalNeeded/chunks.length);
+  
+  setMsg(`📚 Analizando ${chunks.length} sección(es) del contenido...`);
+  
+  let banco=[];
+  for(let ci=0;ci<chunks.length;ci++){
+    setMsg(`📖 Generando preguntas de sección ${ci+1} de ${chunks.length}...`);
+    const chunk=chunks[ci];
+    const prompt=`Sos un generador de preguntas educativas. Analizá este fragmento de texto y generá exactamente ${perChunk} preguntas de opción múltiple basadas ÚNICAMENTE en este fragmento.
 
-TEXTO:
+FRAGMENTO:
 ---
-${contenido.slice(0,6000)}
+${chunk}
 ---
 
-Generá exactamente 3 preguntas de opción múltiple de dificultad ${diff} basadas ESTRICTAMENTE en el texto anterior.
+REGLAS:
+- Las preguntas deben cubrir distintos conceptos, artículos o casos del fragmento
+- NUNCA incluyas la respuesta correcta en el texto de la pregunta
+- Las opciones incorrectas deben ser plausibles, no obviamente falsas
+- Cada pregunta sobre un aspecto DIFERENTE del fragmento
+- Variá la dificultad: algunas medias, otras difíciles, otras muy difíciles
 
-REGLAS IMPORTANTES:
-- Las preguntas deben ser sobre conceptos, artículos, definiciones o casos del texto
-- NUNCA incluyas la respuesta correcta dentro del texto de la pregunta
-- Las opciones incorrectas deben ser plausibles y parecidas a la correcta, no obviamente falsas
-- Cada pregunta debe cubrir un aspecto DIFERENTE del texto
-- Las preguntas deben ser completamente distintas entre sí
-${avoid}
 Respondé SOLO con JSON válido, sin texto extra ni backticks:
-[{"q":"pregunta","topic":"tema breve","opts":["A","B","C","D"],"ans":0}]
-"ans" es el índice (0-3) de la respuesta correcta.`;
-  const txt=await groqCall(prompt);
-  const m=txt.match(/\[[\s\S]*\]/);
-  if(!m)throw new Error('Sin JSON: '+txt.slice(0,80));
-  return JSON.parse(m[0]);
+[{"q":"pregunta","topic":"tema breve (3-5 palabras)","opts":["A","B","C","D"],"ans":0,"diff":1}]
+"ans" es el índice (0-3) de la respuesta correcta. "diff" es 1=media, 2=difícil, 3=muy difícil.`;
+
+    try{
+      const txt=await groqCall(prompt,1400);
+      const m=txt.match(/\[[\s\S]*\]/);
+      if(m){
+        const qs=JSON.parse(m[0]);
+        banco=banco.concat(qs);
+      }
+    }catch(e){console.warn('Error en chunk '+ci,e);}
+  }
+
+  // Mezclar y ordenar por dificultad para los niveles
+  banco.sort(()=>Math.random()-.5); // shuffle
+  banco.sort((a,b)=>(a.diff||1)-(b.diff||1)); // orden por dificultad
+  return banco;
 }
 
 async function generateExplanation(question,wrongOpt,correctOpt){
@@ -515,13 +550,16 @@ async function startGame(){
   const hasFiles=fileContents.filter(Boolean).length>0;
   if(!manual&&!hasFiles){setMsg('⚠️ Ingresá texto o subí un archivo.');return;}
   const btn=$('btn-play');btn.disabled=true;
-  setMsg('🦖 Toli prepara su mochila...');
   try{
     lives=LIVES;level=1;score=0;qIdx=0;answered=false;askedQs=[];
     sessionStats={};completedLevels=new Set();
-    await loadLevel();
+    // Generar todo el banco de preguntas al inicio
+    allQuestions=await generateAllQuestions();
+    if(allQuestions.length<3) throw new Error('No se pudieron generar suficientes preguntas.');
+    setMsg('✅ ¡'+allQuestions.length+' preguntas generadas! Comenzando...');
+    setTimeout(async()=>{ await loadLevel(); },800);
   }catch(e){setMsg('❌ Error: '+e.message);console.error(e);}
-  btn.disabled=false;setMsg('');
+  btn.disabled=false;
 }
 
 async function loadLevel(){
@@ -530,12 +568,13 @@ async function loadLevel(){
   $('lvl-d').textContent=LEVELS[level-1].label;
   $('pts-d').textContent=score+' pts';
   $('story-banner').textContent='📜 '+LEVELS[level-1].story;
-  $('qtext').textContent='🦖 Toli avanza... cargando preguntas...';
-  $('opts').innerHTML='';$('fb').textContent='';$('btn-continue').style.display='none';
-  try{
-    questions=await generateQuestions(level);
-    qIdx=0;showQuestion();
-  }catch(e){$('qtext').textContent='❌ Error: '+e.message;}
+  // Tomar las siguientes Q_PER_LVL preguntas del banco según el nivel
+  const start=(level-1)*Q_PER_LVL;
+  questions=allQuestions.slice(start, start+Q_PER_LVL);
+  if(!questions.length) questions=allQuestions.slice(-Q_PER_LVL); // fallback
+  qIdx=0;
+  $('fb').textContent='';$('btn-continue').style.display='none';
+  showQuestion();
 }
 
 function renderLives(){
