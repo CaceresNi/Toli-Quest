@@ -620,53 +620,92 @@ function splitIntoSections(content,n){
 }
 
 function parseQuestions(txt){
-  const matches=txt.match(/\[[\s\S]*?\]/g);
-  if(!matches)return[];
-  for(const m of matches){
-    try{const p=JSON.parse(m);if(Array.isArray(p)&&p.length>0&&p[0].q&&p[0].opts)return p;}catch(e){}
+  // Limpiar el texto
+  let clean=txt.replace(/```json|```/g,'').trim();
+
+  // Intento 1: parsear directo como array
+  try{
+    const p=JSON.parse(clean);
+    if(Array.isArray(p)&&p.length>0&&p[0].q&&p[0].opts) return p;
+  }catch(e){}
+
+  // Intento 2: buscar primer [...] completo
+  const arrMatch=clean.match(/\[[\s\S]*\]/);
+  if(arrMatch){
+    try{
+      const p=JSON.parse(arrMatch[0]);
+      if(Array.isArray(p)&&p.length>0&&p[0].q) return p;
+    }catch(e){}
   }
-  return[];
+
+  // Intento 3: extraer objetos individuales {...} y armarlos como array
+  const objs=[];
+  const objRegex=/\{[^{}]*"q"\s*:[^{}]*"opts"\s*:[^{}]*\}/g;
+  let m;
+  while((m=objRegex.exec(clean))!==null){
+    try{
+      const o=JSON.parse(m[0]);
+      if(o.q&&o.opts&&Array.isArray(o.opts)&&o.opts.length===4) objs.push(o);
+    }catch(e){}
+  }
+  if(objs.length>0) return objs;
+
+  // Intento 4: buscar múltiples arrays pequeños y concatenar
+  const allArrays=clean.match(/\[[^\[\]]+\]/g)||[];
+  for(const a of allArrays){
+    try{
+      const p=JSON.parse(a);
+      if(Array.isArray(p)&&p[0]?.q) objs.push(...p);
+    }catch(e){}
+  }
+  return objs;
 }
 
 async function generateAllQuestions(){
   const contenido=buildContent();
-  if(contenido.trim().length<100)throw new Error('El contenido es muy corto.');
-  const sections=splitIntoSections(contenido,TOTAL_LVL);
-  const qPerSection=Math.ceil((TOTAL_LVL*Q_PER_LVL)/sections.length);
-  setMsg(`📚 Analizando ${sections.length} sección(es)...`);
+  if(contenido.trim().length<100) throw new Error('El contenido es muy corto.');
+
+  const sections=splitIntoSections(contenido, Math.min(3,TOTAL_LVL));
+  setMsg(`📚 Generando preguntas...`);
+
   let banco=[];
+
   for(let si=0;si<sections.length;si++){
     setMsg(`📖 Sección ${si+1} de ${sections.length}...`);
-    const diff=si===0?'media':si<=2?'difícil':'muy difícil';
-    const prompt=`Sos un generador de preguntas de examen universitario. Leé el siguiente fragmento y creá preguntas basadas EXCLUSIVAMENTE en su contenido.
+    const diff=si===0?'fácil a media':si===1?'media a difícil':'difícil';
 
-FRAGMENTO:
-"""
-${sections[si].slice(0,5000)}
-"""
+    const prompt=`Generá 5 preguntas de opción múltiple sobre este texto. Dificultad: ${diff}.
 
-TAREA: Generá exactamente ${qPerSection} preguntas de opción múltiple de dificultad ${diff}.
+TEXTO:
+${sections[si].slice(0,4000)}
 
-REGLAS ESTRICTAS:
-1. Cada pregunta DEBE mencionar conceptos, nombres, artículos o términos del fragmento
-2. PROHIBIDO inventar información que no esté en el fragmento
-3. PROHIBIDO incluir la respuesta dentro del enunciado
-4. Las 4 opciones deben ser plausibles — evitá opciones obviamente falsas
-5. Cada pregunta debe cubrir un tema DIFERENTE
+REGLAS:
+- Solo usá información del texto
+- No pongas la respuesta en el enunciado
+- Las 4 opciones deben ser similares y plausibles
+- Temas diferentes en cada pregunta
 
-FORMATO — solo JSON, sin texto antes ni después:
-[{"q":"enunciado","topic":"tema 3 palabras","opts":["A","B","C","D"],"ans":0,"diff":${si+1}}]`;
-    let intentos=0;
-    while(intentos<3){
+Respondé SOLO con JSON válido así (sin texto adicional):
+[{"q":"pregunta","topic":"tema","opts":["A","B","C","D"],"ans":0,"diff":${si+1}}]`;
+
+    for(let intento=0;intento<3;intento++){
       try{
-        const txt=await groqCall(prompt,1800);
+        const txt=await groqCall(prompt,2000);
         const qs=parseQuestions(txt);
-        if(qs.length>0){banco=banco.concat(qs);break;}
-        intentos++;
-      }catch(e){intentos++;await new Promise(r=>setTimeout(r,1000));}
+        if(qs.length>=2){
+          banco=banco.concat(qs);
+          break;
+        }
+        await new Promise(r=>setTimeout(r,800));
+      }catch(e){
+        console.warn('Error sección',si,'intento',intento,e.message);
+        await new Promise(r=>setTimeout(r,1000));
+      }
     }
   }
-  if(banco.length<3)throw new Error('No se pudieron generar suficientes preguntas.');
+
+  if(banco.length<3) throw new Error('No se pudieron generar suficientes preguntas. Verificá que los archivos tengan texto legible y el Worker esté funcionando.');
+
   banco.sort((a,b)=>(a.diff||1)-(b.diff||1));
   return banco;
 }
