@@ -25,12 +25,18 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .bg-jungle-bottom{position:fixed;bottom:0;left:0;right:0;height:35%;background:linear-gradient(0deg,#0a1f05 0%,#0d2a08 40%,transparent 100%);pointer-events:none;z-index:0;}
 .bg-fog{position:fixed;bottom:25%;left:0;right:0;height:120px;background:linear-gradient(0deg,rgba(10,20,5,.8),transparent);pointer-events:none;z-index:0;}
 
-/* Trees silhouettes */
+/* Cursor dino */
+body{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='36' viewBox='0 0 40 36'%3E%3C!-- cola --%3E%3Cpath d='M2 28 Q6 22 10 24' stroke='%234a8e2a' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M2 28 Q0 24 3 22' stroke='%234a8e2a' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C!-- cuerpo --%3E%3Cellipse cx='17' cy='22' rx='8' ry='6' fill='%234a8e2a'/%3E%3Cellipse cx='17' cy='23' rx='5' ry='4' fill='%237ec450'/%3E%3C!-- patas --%3E%3Cpath d='M12 26 Q10 30 8 32 L12 32 L13 26Z' fill='%233a7a1a'/%3E%3Cpath d='M19 26 Q21 30 23 32 L19 32 L18 26Z' fill='%233a7a1a'/%3E%3C!-- cuello --%3E%3Cpath d='M17 17 Q20 12 22 10' stroke='%234a8e2a' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3C!-- cabeza --%3E%3Cellipse cx='23' cy='8' rx='6' ry='4.5' fill='%234a8e2a'/%3E%3C!-- hocico --%3E%3Cpath d='M27 6 Q32 5 33 7 Q32 9 27 9Z' fill='%233a7a1a'/%3E%3C!-- ojo --%3E%3Ccircle cx='25' cy='6' r='1.5' fill='white'/%3E%3Ccircle cx='25.5' cy='6' r='.8' fill='%230a0a1e'/%3E%3C!-- ceja --%3E%3Cpath d='M22 4 Q24 3 26 4' stroke='%232a5a0a' stroke-width='1' fill='none'/%3E%3C!-- boca cerrada --%3E%3Cpath d='M27 8 Q30 8 32 7' stroke='%232a5a0a' stroke-width='1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") 6 6, auto;}
+body.clicking{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='36' viewBox='0 0 40 36'%3E%3C!-- cola --%3E%3Cpath d='M2 28 Q6 22 10 24' stroke='%234a8e2a' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M2 28 Q0 24 3 22' stroke='%234a8e2a' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C!-- cuerpo --%3E%3Cellipse cx='17' cy='22' rx='8' ry='6' fill='%234a8e2a'/%3E%3Cellipse cx='17' cy='23' rx='5' ry='4' fill='%237ec450'/%3E%3C!-- patas --%3E%3Cpath d='M12 26 Q10 30 8 32 L12 32 L13 26Z' fill='%233a7a1a'/%3E%3Cpath d='M19 26 Q21 30 23 32 L19 32 L18 26Z' fill='%233a7a1a'/%3E%3C!-- cuello --%3E%3Cpath d='M17 17 Q20 12 22 10' stroke='%234a8e2a' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3C!-- cabeza --%3E%3Cellipse cx='23' cy='8' rx='6' ry='4.5' fill='%234a8e2a'/%3E%3C!-- hocico abierto --%3E%3Cpath d='M27 6 Q32 4 33 6' fill='%233a7a1a'/%3E%3Cpath d='M27 9 Q32 11 33 9' fill='%232a6a10'/%3E%3C!-- boca abierta interior --%3E%3Cpath d='M27 6 Q32 4 33 6 L33 9 Q32 11 27 9Z' fill='%23cc3300'/%3E%3C!-- dientes --%3E%3Cpath d='M28 6 L28.5 7.5 M29.5 5.8 L30 7.3 M31 5.6 L31.5 7' stroke='white' stroke-width='.8' stroke-linecap='round'/%3E%3C!-- ojo --%3E%3Ccircle cx='25' cy='6' r='1.5' fill='white'/%3E%3Ccircle cx='25.5' cy='6' r='.8' fill='%230a0a1e'/%3E%3C!-- ceja furiosa --%3E%3Cpath d='M22 3.5 Q24 2.5 26 3.5' stroke='%232a5a0a' stroke-width='1.2' fill='none'/%3E%3C/svg%3E") 6 6, auto;}
 .trees{position:fixed;bottom:0;left:0;right:0;height:220px;pointer-events:none;z-index:1;overflow:hidden;}
 .trees svg{width:100%;height:100%;}
 
-/* Moon */
-.moon{position:fixed;top:40px;right:40px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fffde0,#f0d060 40%,#c8a000);box-shadow:0 0 40px #f0d06066,0 0 80px #f0d06033;pointer-events:none;z-index:1;}
+/* Moon phases */
+.moon{position:fixed;top:40px;right:40px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fffde0,#f0d060 40%,#c8a000);box-shadow:0 0 40px #f0d06066,0 0 80px #f0d06033;pointer-events:all;z-index:10;cursor:pointer;transition:all .5s ease;overflow:hidden;}
+.moon-mask{position:absolute;inset:0;border-radius:50%;transition:all .5s ease;pointer-events:none;}
+.moon:hover{transform:scale(1.08);}
+.moon-tooltip{position:fixed;top:116px;right:30px;background:rgba(0,0,0,.7);border:1px solid #3a5a1a;border-radius:8px;padding:4px 10px;font-size:.72rem;color:#9acd60;pointer-events:none;opacity:0;transition:opacity .3s;z-index:11;}
+.moon:hover ~ .moon-tooltip{opacity:1;}
 
 /* Content above bg */
 .content{position:relative;z-index:2;width:100%;display:flex;flex-direction:column;align-items:center;padding:20px 16px 30px;flex:1;}
@@ -55,7 +61,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 #txt-input:focus{outline:none;border-color:#5a9a20;box-shadow:0 0 12px rgba(90,154,32,.3);}
 
 .input-wrap{position:relative;width:100%;}
-#add-btn{position:absolute;right:8px;bottom:8px;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2a7a10,#1a5a08);border:1px solid #4a9a20;color:#c8e8a0;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0005;}
+#add-btn-wrap{position:absolute;right:8px;bottom:8px;width:32px;height:32px;}
+#add-btn{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2a7a10,#1a5a08);border:1px solid #4a9a20;color:#c8e8a0;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0005;position:relative;z-index:2;}
+#real-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:3;}
 #file-menu{display:none;position:absolute;right:8px;bottom:46px;background:linear-gradient(135deg,#0a1f05,#0d2a08);border:1.5px solid #2a5a10;border-radius:12px;overflow:hidden;z-index:10;min-width:190px;box-shadow:0 4px 20px #00000088;}
 #file-menu.open{display:block;}
 .fopt{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;font-size:.88rem;color:#b0d880;}
@@ -167,7 +175,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 
 <!-- BG LAYERS -->
 <div class="bg-layer bg-stars"></div>
-<div class="moon"></div>
+<div class="moon" id="moon" onclick="cycleMoon()"><div class="moon-mask" id="moon-mask"></div></div>
+<div class="moon-tooltip" id="moon-tip">Tocá para cambiar la fase</div>
 <div class="bg-jungle-bottom"></div>
 <div class="bg-fog"></div>
 <div class="trees">
@@ -204,7 +213,10 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <div class="rune-label">Cargá tu conocimiento</div>
       <div class="input-wrap">
         <textarea id="txt-input" placeholder="Pegá acá tu texto, apuntes o tema. También podés subir archivos con el botón +"></textarea>
-        <button id="add-btn">+</button>
+        <div id="add-btn-wrap">
+          <button id="add-btn">+</button>
+          <input type="file" id="real-input" multiple accept=".pdf,.txt,.md,.csv,.json,application/pdf,text/plain">
+        </div>
         <div id="file-menu">
           <div class="fopt" data-type="txt"><span>📄</span>Texto (.txt, .md…)</div>
           <div class="fopt" data-type="pdf"><span>📕</span>PDF</div>
@@ -730,6 +742,34 @@ function animateToli(t){
 }
 function setToliSad(){$('eyebrow').setAttribute('d','M118 40 Q122 37 128 39');$('eye-p').setAttribute('cy','43');}
 function setToliNeutral(){$('eyebrow').setAttribute('d','M118 37 Q122 34 128 36');$('eye-p').setAttribute('cy','42');}
+
+// ── CURSOR DINO ──
+document.addEventListener('mousedown',()=>document.body.classList.add('clicking'));
+document.addEventListener('mouseup',()=>document.body.classList.remove('clicking'));
+
+// ── MOON PHASES ──
+const MOON_PHASES=[
+  {name:'🌕 Luna llena',    mask:'none',                                                                    glow:'0 0 40px #f0d06066,0 0 80px #f0d06033', dim:1},
+  {name:'🌔 Tres cuartos',  mask:'radial-gradient(circle at 68% 50%,#050510 38%,transparent 40%)',          glow:'0 0 30px #f0d06055,0 0 60px #f0d06022', dim:.85},
+  {name:'🌗 Media luna',    mask:'radial-gradient(circle at 75% 50%,#050510 48%,transparent 50%)',          glow:'0 0 20px #f0d06044', dim:.65},
+  {name:'🌘 Cuarto luna',   mask:'radial-gradient(circle at 65% 50%,#050510 62%,transparent 64%)',          glow:'0 0 12px #f0d06033', dim:.35},
+  {name:'🌑 Luna apagada',  mask:'radial-gradient(circle at 50% 50%,#050510 90%,transparent 92%)',          glow:'0 0 4px #f0d06011',  dim:.08},
+];
+let moonPhase=0;
+function cycleMoon(){
+  moonPhase=(moonPhase+1)%MOON_PHASES.length;
+  const p=MOON_PHASES[moonPhase];
+  const moon=$('moon');
+  const mask=$('moon-mask');
+  moon.style.boxShadow=p.glow;
+  moon.style.opacity=p.dim;
+  mask.style.background=p.mask;
+  // Oscurecer el fondo
+  document.querySelector('.bg-stars').style.filter=`brightness(${0.3+p.dim*0.7})`;
+  document.querySelector('.bg-jungle-bottom').style.opacity=p.dim;
+  $('moon-tip').textContent=p.name;
+  setTimeout(()=>$('moon-tip').textContent='Tocá para cambiar la fase',2000);
+}
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'));
