@@ -451,85 +451,104 @@ function addChip(name,idx){
 function removeFile(idx){fileContents[idx]=null;const c=$('chip-'+idx);if(c)c.remove();}
 
 // ── API ──
-async function groqCall(prompt,maxTokens=1200){
+async function groqCall(prompt, maxTokens=1800){
   const r=await fetch(WORKER_URL,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({prompt,maxTokens})
+    body:JSON.stringify({prompt, maxTokens})
   });
   const d=await r.json();
-  if(d.error)throw new Error(d.error.message);
+  if(d.error) throw new Error(d.error.message);
   return d.choices?.[0]?.message?.content||'';
 }
 
 function buildContent(){
   let c=$('txt-input').value.trim();
   for(const f of fileContents.filter(Boolean)){
-    if(f.text)c+=`\n\n=== ARCHIVO: ${f.name} ===\n${f.text}`;
+    if(f.text) c+=`\n\n=== ARCHIVO: ${f.name} ===\n${f.text}`;
   }
   return c;
 }
 
-// Divide el contenido en chunks de ~3000 chars respetando párrafos
-function chunkContent(content, chunkSize=3000){
-  const chunks=[];
-  const paragraphs=content.split(/\n{2,}/);
-  let current='';
-  for(const p of paragraphs){
-    if((current+p).length>chunkSize && current.length>0){
-      chunks.push(current.trim());
-      current=p+'\n\n';
-    } else {
-      current+=p+'\n\n';
-    }
+function parseQuestions(txt){
+  const m=txt.match(/\[[\s\S]*?\]/g);
+  if(!m) return [];
+  for(const candidate of m){
+    try{
+      const parsed=JSON.parse(candidate);
+      if(Array.isArray(parsed) && parsed.length>0 && parsed[0].q && parsed[0].opts) return parsed;
+    }catch(e){}
   }
-  if(current.trim()) chunks.push(current.trim());
-  return chunks;
+  return [];
+}
+
+function splitIntoSections(content, n){
+  // Divide el contenido en n secciones aproximadamente iguales respetando párrafos
+  const paras=content.split(/\n{2,}/);
+  const size=Math.ceil(paras.length/n);
+  const sections=[];
+  for(let i=0;i<n;i++) sections.push(paras.slice(i*size,(i+1)*size).join('\n\n'));
+  return sections.filter(s=>s.trim().length>50);
 }
 
 async function generateAllQuestions(){
   const contenido=buildContent();
-  const chunks=chunkContent(contenido);
-  const totalNeeded=TOTAL_LVL*Q_PER_LVL; // 15 preguntas en total
-  const perChunk=Math.ceil(totalNeeded/chunks.length);
-  
-  setMsg(`📚 Analizando ${chunks.length} sección(es) del contenido...`);
-  
+  if(contenido.trim().length<100) throw new Error('El contenido es muy corto.');
+
+  const totalNeeded=TOTAL_LVL*Q_PER_LVL; // 15
+  const sections=splitIntoSections(contenido, TOTAL_LVL);
+  const qPerSection=Math.ceil(totalNeeded/sections.length);
+
+  setMsg(`📚 Analizando ${sections.length} sección(es)...`);
   let banco=[];
-  for(let ci=0;ci<chunks.length;ci++){
-    setMsg(`📖 Generando preguntas de sección ${ci+1} de ${chunks.length}...`);
-    const chunk=chunks[ci];
-    const prompt=`Sos un generador de preguntas educativas. Analizá este fragmento de texto y generá exactamente ${perChunk} preguntas de opción múltiple basadas ÚNICAMENTE en este fragmento.
 
-FRAGMENTO:
----
-${chunk}
----
+  for(let si=0;si<sections.length;si++){
+    setMsg(`📖 Sección ${si+1} de ${sections.length}...`);
+    const sec=sections[si];
+    const diff=si===0?'media':si<=2?'difícil':'muy difícil';
 
-REGLAS:
-- Las preguntas deben cubrir distintos conceptos, artículos o casos del fragmento
-- NUNCA incluyas la respuesta correcta en el texto de la pregunta
-- Las opciones incorrectas deben ser plausibles, no obviamente falsas
-- Cada pregunta sobre un aspecto DIFERENTE del fragmento
-- Variá la dificultad: algunas medias, otras difíciles, otras muy difíciles
+    const prompt=`Sos un generador de preguntas de examen universitario. Tu única tarea es leer el siguiente fragmento y crear preguntas basadas EXCLUSIVAMENTE en su contenido.
 
-Respondé SOLO con JSON válido, sin texto extra ni backticks:
-[{"q":"pregunta","topic":"tema breve (3-5 palabras)","opts":["A","B","C","D"],"ans":0,"diff":1}]
-"ans" es el índice (0-3) de la respuesta correcta. "diff" es 1=media, 2=difícil, 3=muy difícil.`;
+FRAGMENTO (leélo completo antes de generar):
+"""
+${sec.slice(0,5000)}
+"""
 
-    try{
-      const txt=await groqCall(prompt,1400);
-      const m=txt.match(/\[[\s\S]*\]/);
-      if(m){
-        const qs=JSON.parse(m[0]);
-        banco=banco.concat(qs);
+TAREA: Generá exactamente ${qPerSection} preguntas de opción múltiple de dificultad ${diff}.
+
+REGLAS ESTRICTAS:
+1. Cada pregunta DEBE mencionar conceptos, nombres, artículos o términos que aparecen literalmente en el fragmento
+2. PROHIBIDO inventar información que no esté en el fragmento
+3. PROHIBIDO incluir la respuesta dentro del enunciado de la pregunta
+4. Las 4 opciones deben ser plausibles — evitá opciones obviamente falsas
+5. Cada pregunta debe cubrir un tema DIFERENTE del fragmento
+6. Las preguntas deben ser específicas, no genéricas
+
+FORMATO DE RESPUESTA — solo JSON, sin explicaciones, sin texto antes ni después:
+[{"q":"enunciado de la pregunta","topic":"tema en 3 palabras","opts":["opción A","opción B","opción C","opción D"],"ans":0,"diff":${si+1}}]`;
+
+    let intentos=0;
+    while(intentos<3){
+      try{
+        const txt=await groqCall(prompt,1800);
+        const qs=parseQuestions(txt);
+        if(qs.length>0){
+          banco=banco.concat(qs);
+          break;
+        }
+        intentos++;
+      }catch(e){
+        intentos++;
+        if(intentos>=3) console.warn('Falló sección '+si,e);
+        await new Promise(r=>setTimeout(r,1000));
       }
-    }catch(e){console.warn('Error en chunk '+ci,e);}
+    }
   }
 
-  // Mezclar y ordenar por dificultad para los niveles
-  banco.sort(()=>Math.random()-.5); // shuffle
-  banco.sort((a,b)=>(a.diff||1)-(b.diff||1)); // orden por dificultad
+  if(banco.length<3) throw new Error('No se pudieron generar suficientes preguntas. Verificá que los archivos tengan texto legible.');
+
+  // Ordenar por dificultad para que escalen con los niveles
+  banco.sort((a,b)=>(a.diff||1)-(b.diff||1));
   return banco;
 }
 
