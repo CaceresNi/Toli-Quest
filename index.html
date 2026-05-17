@@ -197,10 +197,9 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;backgrou
 <div id="s-over" class="screen">
   <div class="big-e">💀</div>
   <div class="end-t" style="color:#ff7070">¡Toli cayó!</div>
-  <div class="end-s">Se quedó sin vidas. ¡Intentalo de nuevo!</div>
+  <div class="end-s">Se quedó sin vidas. Tenés que reiniciar desde el principio.</div>
   <div class="stats-box" id="over-stats"></div>
-  <button class="btn-retry" onclick="goMap()">🗺️ Volver al mapa</button>
-  <button class="btn-retry" style="background:#444" onclick="resetAll()">🔄 Reiniciar todo</button>
+  <button class="btn-retry" onclick="resetAll()">🔄 Reiniciar desde el principio</button>
 </div>
 
 <!-- WIN -->
@@ -379,8 +378,15 @@ TEXTO:
 ${contenido.slice(0, 6000)}
 ---
 
-Generá exactamente 3 preguntas de opción múltiple de dificultad ${diff} basadas ESTRICTAMENTE en el texto anterior. No uses conocimiento externo. Si el texto trata de legislación argentina, las preguntas deben ser sobre legislación argentina.${avoid}
+Generá exactamente 3 preguntas de opción múltiple de dificultad ${diff} basadas ESTRICTAMENTE en el texto anterior. 
 
+REGLAS IMPORTANTES:
+- Las preguntas deben ser sobre conceptos, artículos, definiciones o casos del texto
+- NUNCA incluyas la respuesta correcta dentro del texto de la pregunta
+- Las opciones incorrectas deben ser plausibles y parecidas a la correcta, no obviamente falsas
+- Cada pregunta debe cubrir un aspecto DIFERENTE del texto
+- Las preguntas deben ser completamente distintas entre sí
+${avoid}
 Respondé SOLO con JSON válido, sin texto extra ni backticks:
 [{"q":"pregunta","topic":"tema breve","opts":["A","B","C","D"],"ans":0}]
 "ans" es el índice (0-3) de la respuesta correcta.`;
@@ -615,7 +621,6 @@ function showGameOver(){
   show('s-over');
   $('over-stats').innerHTML=buildStatsHTML();
 }
-
 function showWin(){
   show('s-win');
   $('win-stats').innerHTML=buildStatsHTML();
